@@ -318,10 +318,17 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
       addUpgradeToHistory(action.upgradeId);
       unlockAchievement('first_upgrade');
 
+      const newShopOffers = state.shopOffers.filter(id => id !== action.upgradeId);
+
       return {
         ...state,
         tickets: state.tickets - action.cost,
         ownedUpgrades: [...state.ownedUpgrades, action.upgradeId],
+        shopOffers: newShopOffers,
+        ui: {
+          ...state.ui,
+          screen: 'shop',
+        },
       };
     }
 
