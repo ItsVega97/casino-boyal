@@ -16,9 +16,15 @@ export const RouletteMenuScreen: React.FC<RouletteMenuScreenProps> = ({
       <div className="mx-auto max-w-6xl p-3 md:p-6">
         <div className="min-h-[calc(100dvh-3rem)] flex flex-col justify-center">
           <div className="bg-gray-950 rounded-xl border-2 border-red-600 p-4 md:p-6 mb-4">
-            <h1 className="text-2xl md:text-3xl font-black text-red-600 tracking-wider text-center font-mono">
-              CASINO BOYAL
-            </h1>
+            <div className="text-center mb-2">
+              <h1 className="text-3xl md:text-5xl font-black text-yellow-400 glow-text mb-2" style={{ textShadow: '4px 4px 0 #ff3333' }}>
+                CASINO
+              </h1>
+              <h2 className="text-3xl md:text-5xl font-black text-red-500 mb-4" style={{ textShadow: '4px 4px 0 #ffff00' }}>
+                BOYAL
+              </h2>
+              <p className="text-yellow-300 text-xs md:text-sm tracking-widest">~ PIXEL ART ROGUELIKE ROULETTE ~</p>
+            </div>
             <p className="text-sm text-yellow-400 font-mono text-center mt-1">
               [ Elige tu ruleta ]
             </p>

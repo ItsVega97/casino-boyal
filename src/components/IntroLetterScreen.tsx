@@ -13,9 +13,15 @@ export const IntroLetterScreen: React.FC<IntroLetterScreenProps> = ({ onStart })
           <div className="w-full max-w-3xl">
             <div className="bg-gray-950 rounded-xl border-2 border-yellow-600 p-6 md:p-8">
               <div className="text-center mb-6">
-                <h1 className="text-2xl md:text-3xl font-black text-red-600 tracking-wider mb-2 font-mono">
-                  CASINO BOYAL
-                </h1>
+                <div className="mb-4">
+                  <h1 className="text-3xl md:text-5xl font-black text-yellow-400 glow-text mb-2" style={{ textShadow: '4px 4px 0 #ff3333' }}>
+                    CASINO
+                  </h1>
+                  <h2 className="text-3xl md:text-5xl font-black text-red-500 mb-4" style={{ textShadow: '4px 4px 0 #ffff00' }}>
+                    BOYAL
+                  </h2>
+                  <p className="text-yellow-300 text-xs md:text-sm tracking-widest">~ PIXEL ART ROGUELIKE ROULETTE ~</p>
+                </div>
                 <p className="text-sm text-yellow-400 font-mono">
                   [ Carta para Bill ]
                 </p>
