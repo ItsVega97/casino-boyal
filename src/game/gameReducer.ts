@@ -212,7 +212,6 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
         }
       }
 
-      const { unlockAchievement } = require('../achievements/system');
       if (newStreak.winsInRow >= 5) unlockAchievement('five_streak');
       if (newChips >= 500) unlockAchievement('rich_man');
       if (newChips >= 1000) unlockAchievement('millionaire');
@@ -316,10 +315,7 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
         return state;
       }
 
-      const { addUpgradeToHistory } = require('../upgrades/history');
       addUpgradeToHistory(action.upgradeId);
-
-      const { unlockAchievement } = require('../achievements/system');
       unlockAchievement('first_upgrade');
 
       return {
@@ -347,7 +343,6 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
         localStorage.setItem('casinoBoyal_bestRunRoundsCleared', newBestRunRoundsCleared.toString());
       }
 
-      const { unlockAchievement } = require('../achievements/system');
       if (newRoundsCleared >= 1) unlockAchievement('first_win');
       if (newRoundsCleared >= 5) unlockAchievement('five_rounds');
       if (newRoundsCleared >= 10) unlockAchievement('ten_rounds');
