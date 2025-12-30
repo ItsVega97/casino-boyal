@@ -292,6 +292,17 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
       const newTickets = state.tickets + ticketsGained;
       const newShopOffers = pick3UpgradesNotOwned(state.ownedUpgrades, state.round, state.selectedVariantId);
 
+      if (import.meta.env.DEV) {
+        console.log('🛍️ OPEN_SHOP:', {
+          phase: state.phase,
+          round: state.round,
+          ticketsGained,
+          newTickets,
+          newShopOffersLength: newShopOffers.length,
+          prevScreen: state.ui.screen,
+        });
+      }
+
       return {
         ...state,
         tickets: newTickets,
@@ -303,37 +314,76 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
     }
 
     case 'BUY_UPGRADE': {
+      if (import.meta.env.DEV) {
+        console.log('🛒 BUY_UPGRADE:', {
+          upgradeId: action.upgradeId,
+          cost: action.cost,
+          screen: state.ui.screen,
+          phase: state.phase,
+          tickets: state.tickets,
+          shopOffersLength: Array.isArray(state.shopOffers) ? state.shopOffers.length : 'INVALID',
+          ownedUpgradesLength: Array.isArray(state.ownedUpgrades) ? state.ownedUpgrades.length : 'INVALID',
+        });
+      }
+
       if (state.ui.screen !== 'shop') {
+        console.warn('BUY_UPGRADE: Not in shop screen, ignoring');
         return state;
       }
+
+      const currentOffers = Array.isArray(state.shopOffers) ? state.shopOffers : [];
+      const currentOwned = Array.isArray(state.ownedUpgrades) ? state.ownedUpgrades : [];
 
       if (state.tickets < action.cost) {
+        console.warn('BUY_UPGRADE: Not enough tickets');
         return state;
       }
 
-      if (state.ownedUpgrades.includes(action.upgradeId)) {
+      if (currentOwned.includes(action.upgradeId)) {
+        console.warn('BUY_UPGRADE: Already owned');
         return state;
       }
 
       addUpgradeToHistory(action.upgradeId);
       unlockAchievement('first_upgrade');
 
-      const newShopOffers = state.shopOffers.filter(id => id !== action.upgradeId);
+      const newShopOffers = currentOffers.filter(id => id !== action.upgradeId);
+      const newOwnedUpgrades = [...currentOwned, action.upgradeId];
 
-      return {
+      const newState = {
         ...state,
         tickets: state.tickets - action.cost,
-        ownedUpgrades: [...state.ownedUpgrades, action.upgradeId],
+        ownedUpgrades: newOwnedUpgrades,
         shopOffers: newShopOffers,
         ui: {
           ...state.ui,
           screen: 'shop',
         },
       };
+
+      if (import.meta.env.DEV) {
+        console.log('✅ BUY_UPGRADE SUCCESS:', {
+          newTickets: newState.tickets,
+          newShopOffersLength: newShopOffers.length,
+          newOwnedLength: newOwnedUpgrades.length,
+          uiScreen: newState.ui.screen,
+        });
+      }
+
+      return newState;
     }
 
     case 'NEXT_ROUND': {
+      if (import.meta.env.DEV) {
+        console.log('➡️ NEXT_ROUND:', {
+          currentScreen: state.ui.screen,
+          currentRound: state.round,
+          phase: state.phase,
+        });
+      }
+
       if (state.ui.screen !== 'shop') {
+        console.warn('NEXT_ROUND: Not in shop screen, ignoring');
         return state;
       }
 

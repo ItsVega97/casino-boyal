@@ -20,16 +20,40 @@ export const ShopModal: React.FC<ShopModalProps> = ({
   onClose,
 }) => {
   const [lastPurchase, setLastPurchase] = useState<string | null>(null);
-  const offers = shopOffers.map(id => getUpgradeById(id)).filter(u => u !== undefined);
 
-  const shopFlavor = useFlavorText('shop', shopOffers.join(','));
+  const safeShopOffers = Array.isArray(shopOffers) ? shopOffers : [];
+  const safeOwnedUpgrades = Array.isArray(ownedUpgrades) ? ownedUpgrades : [];
+
+  const offers = safeShopOffers
+    .map(id => {
+      const upgrade = getUpgradeById(id);
+      if (!upgrade && import.meta.env.DEV) {
+        console.warn(`ShopModal: Upgrade with id "${id}" not found in catalog`);
+      }
+      return upgrade;
+    })
+    .filter((u): u is NonNullable<typeof u> => u !== undefined);
+
+  const shopFlavor = useFlavorText('shop', safeShopOffers.join(','));
   const buyUpgradeFlavor = useFlavorText('buyUpgrade', lastPurchase || 'none');
 
   const handleBuy = (upgradeId: string, cost: number) => {
+    if (import.meta.env.DEV) {
+      console.log('🛒 ShopModal: handleBuy called', { upgradeId, cost });
+    }
     onBuyUpgrade(upgradeId, cost);
     setLastPurchase(upgradeId);
     setTimeout(() => setLastPurchase(null), 3000);
   };
+
+  if (import.meta.env.DEV) {
+    console.log('🏪 ShopModal render:', {
+      tickets,
+      offersCount: offers.length,
+      safeShopOffersCount: safeShopOffers.length,
+      ownedCount: safeOwnedUpgrades.length,
+    });
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 overflow-y-auto">
@@ -60,14 +84,14 @@ export const ShopModal: React.FC<ShopModalProps> = ({
         <div className="p-6 space-y-4">
           {offers.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-xl text-gray-500 font-bold">All upgrades purchased!</p>
-              <p className="text-sm text-gray-600 mt-2">You own every upgrade in the game.</p>
+              <p className="text-xl text-gray-500 font-bold">No hay mejoras disponibles</p>
+              <p className="text-sm text-gray-600 mt-2">Pulsa Continue para la siguiente ronda</p>
             </div>
           ) : (
             offers.map((upgrade) => {
               if (!upgrade) return null;
 
-              const isOwned = ownedUpgrades.includes(upgrade.id);
+              const isOwned = safeOwnedUpgrades.includes(upgrade.id);
               const canAfford = tickets >= upgrade.cost;
               const isDisabled = isOwned || !canAfford;
 
