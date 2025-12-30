@@ -16,6 +16,8 @@ import { useFlavorText } from '../lore/useFlavorText';
 import { getRouletteVariant } from '../rouletteVariants/catalog';
 import { RouletteMenuScreen } from './RouletteMenuScreen';
 import { RouletteCardFlip } from './RouletteCardFlip';
+import { saveRunRecord } from '../game/runHistory';
+import { unlockAchievement } from '../achievements/system';
 
 interface GameScreenProps {
   onGameOver: (round: number, highScore: number) => void;
@@ -100,16 +102,14 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onGameOver }) => {
 
   const handleGameOverClick = () => {
     const defeatedReason = state.spinsLeft <= 0 ? 'outOfSpins' : 'outOfChips';
-    const { saveRunRecord } = require('../game/runHistory');
     saveRunRecord({
       rouletteVariantId: state.selectedVariantId,
       roundsCompleted: state.run.roundsCleared,
-      maxChips: state.chips,
+      maxChips: state.runStats?.maxChips || state.chips,
       ticketsEarned: state.tickets,
       defeatedReason,
     });
 
-    const { unlockAchievement } = require('../achievements/system');
     unlockAchievement('first_death');
 
     onGameOver(state.round, state.highScore);
@@ -159,16 +159,74 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onGameOver }) => {
   }
 
   if (state.ui.screen === 'gameOver') {
+    const variant = getRouletteVariant(state.selectedVariantId);
+    const defeatedReason = state.spinsLeft <= 0 ? 'Te quedaste sin giros' : 'Te quedaste sin fichas';
+
     return (
-      <div className="min-h-dvh w-full bg-black flex items-center justify-center p-4">
-        <div className="text-center">
-          <p className="text-red-400 text-xl mb-4">GAME OVER</p>
-          <button
-            onClick={handleGameOverClick}
-            className="px-6 py-3 bg-yellow-600 hover:bg-yellow-700 text-white font-bold rounded"
-          >
-            Volver al Menú Principal
-          </button>
+      <div className="min-h-dvh w-full bg-black">
+        <div className="mx-auto max-w-4xl p-3 md:p-6 flex items-center min-h-dvh">
+          <div className="w-full">
+            <div className="bg-gradient-to-b from-red-950 to-black rounded-xl border-4 border-red-600 p-6 md:p-8 shadow-2xl">
+              <div className="text-center mb-6">
+                <h1 className="text-4xl md:text-5xl font-black text-red-400 mb-2 tracking-wider font-mono">
+                  GAME OVER
+                </h1>
+                <p className="text-gray-400 text-sm font-mono">{gameOverFlavor}</p>
+              </div>
+
+              <div className="bg-black/50 rounded-lg border-2 border-red-800 p-4 mb-6">
+                <h2 className="text-yellow-400 font-bold text-lg mb-4 text-center font-mono">RESUMEN DE LA PARTIDA</h2>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                  <div className="bg-gray-900 rounded p-3 border-2 border-purple-600">
+                    <p className="text-xs text-purple-400 font-mono mb-1">RULETA</p>
+                    <p className="text-lg font-bold text-purple-200">{variant.name}</p>
+                  </div>
+                  <div className="bg-gray-900 rounded p-3 border-2 border-cyan-600">
+                    <p className="text-xs text-cyan-400 font-mono mb-1">RONDAS COMPLETADAS</p>
+                    <p className="text-lg font-bold text-cyan-200">{state.run.roundsCleared}</p>
+                  </div>
+                  <div className="bg-gray-900 rounded p-3 border-2 border-yellow-600">
+                    <p className="text-xs text-yellow-400 font-mono mb-1">RONDA ALCANZADA</p>
+                    <p className="text-lg font-bold text-yellow-200">{state.round}</p>
+                  </div>
+                  <div className="bg-gray-900 rounded p-3 border-2 border-green-600">
+                    <p className="text-xs text-green-400 font-mono mb-1">CHIPS MÁXIMOS</p>
+                    <p className="text-lg font-bold text-green-200">${state.runStats?.maxChips || state.chips}</p>
+                  </div>
+                  <div className="bg-gray-900 rounded p-3 border-2 border-orange-600">
+                    <p className="text-xs text-orange-400 font-mono mb-1">CHIPS FINALES</p>
+                    <p className="text-lg font-bold text-orange-200">${state.chips}</p>
+                  </div>
+                  <div className="bg-gray-900 rounded p-3 border-2 border-pink-600">
+                    <p className="text-xs text-pink-400 font-mono mb-1">TICKETS GANADOS</p>
+                    <p className="text-lg font-bold text-pink-200">{state.tickets}</p>
+                  </div>
+                </div>
+
+                <div className="bg-red-900/50 rounded p-3 border border-red-700 text-center">
+                  <p className="text-red-200 text-sm font-mono">
+                    <span className="font-bold">Motivo de derrota:</span> {defeatedReason}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={handleRestart}
+                  className="w-full py-4 bg-green-600 hover:bg-green-700 text-white font-black text-lg rounded-lg transition-all active:scale-95 border-4 border-green-900 shadow-lg font-mono"
+                >
+                  NUEVA PARTIDA
+                </button>
+                <button
+                  onClick={handleGameOverClick}
+                  className="w-full py-3 bg-yellow-600 hover:bg-yellow-700 text-black font-bold rounded-lg transition-all active:scale-95 border-2 border-yellow-900 shadow-lg font-mono"
+                >
+                  VOLVER AL MENÚ PRINCIPAL
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );

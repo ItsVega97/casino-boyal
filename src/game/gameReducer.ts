@@ -36,6 +36,9 @@ export interface GameState {
   run: {
     roundsCleared: number;
   };
+  runStats: {
+    maxChips: number;
+  };
   ui: {
     screen: 'intro' | 'menu' | 'game' | 'shop' | 'gameOver' | 'history' | 'wiki' | 'achievements';
   };
@@ -99,6 +102,9 @@ export const createInitialState = (): GameState => {
     },
     run: {
       roundsCleared: 0,
+    },
+    runStats: {
+      maxChips: 20,
     },
     ui: {
       screen: 'intro',
@@ -188,6 +194,7 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
       const resolution = resolveBetsWithUpgrades(winningNumber, state.lockedBets, state.ownedUpgrades, state.upgradeState, variant.modifiers);
 
       const newChips = state.chips + resolution.totalDelta;
+      const newMaxChips = Math.max(state.runStats.maxChips, newChips);
       const newSpinsLeft = state.spinsLeft - 1;
 
       let newStreak = { ...state.streak };
@@ -246,6 +253,9 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
           streak: newStreak,
           upgradeState: newUpgradeState,
           repeatNextSpinFree: false,
+          runStats: {
+            maxChips: newMaxChips,
+          },
           ui: {
             screen: 'gameOver',
           },
@@ -268,6 +278,9 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
         streak: newStreak,
         upgradeState: newUpgradeState,
         repeatNextSpinFree: newRepeatNextSpinFree,
+        runStats: {
+          maxChips: newMaxChips,
+        },
       };
     }
 
@@ -356,11 +369,14 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
         newUpgradeState.favored_kind = selectRandomFavoredKind();
       }
 
+      const newChipsForRound = state.chips + roundBonus;
+      const newMaxChips = Math.max(state.runStats.maxChips, newChipsForRound);
+
       return {
         ...state,
         round: newRound,
         spinsLeft: getRoundSpinsBase(newRound, variant.modifiers.spinsPerRoundDelta || 0) + extraSpins,
-        chips: state.chips + roundBonus,
+        chips: newChipsForRound,
         targetChips: getRoundTarget(newRound),
         phase: 'betting',
         lastResult: null,
@@ -370,6 +386,9 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
         },
         run: {
           roundsCleared: newRoundsCleared,
+        },
+        runStats: {
+          maxChips: newMaxChips,
         },
         ui: {
           screen: 'game',
@@ -404,6 +423,9 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
         shopOffers: [],
         run: {
           roundsCleared: 0,
+        },
+        runStats: {
+          maxChips: 20,
         },
         ui: {
           screen: 'menu',
@@ -442,7 +464,6 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
       const variant = getRouletteVariant(action.variantId);
       const spinsPerRoundDelta = variant.modifiers.spinsPerRoundDelta || 0;
 
-      const { unlockAchievement } = require('../achievements/system');
       if (action.variantId === 'jade') unlockAchievement('use_jade');
       if (action.variantId === 'shadow') unlockAchievement('use_shadow');
 
@@ -465,6 +486,9 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
         run: {
           roundsCleared: 0,
         },
+        runStats: {
+          maxChips: 20,
+        },
         ui: {
           screen: 'game',
         },
@@ -483,7 +507,6 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
     case 'SELECT_VARIANT': {
       const variant = getRouletteVariant(action.variantId);
 
-      const { unlockAchievement } = require('../achievements/system');
       if (action.variantId === 'jade') unlockAchievement('use_jade');
       if (action.variantId === 'shadow') unlockAchievement('use_shadow');
 
@@ -505,6 +528,9 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
         shopOffers: [],
         run: {
           roundsCleared: 0,
+        },
+        runStats: {
+          maxChips: 20,
         },
         ui: {
           screen: 'game',
