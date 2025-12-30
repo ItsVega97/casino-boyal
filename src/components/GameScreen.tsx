@@ -5,6 +5,7 @@ import { OwnedUpgradesPanel } from './OwnedUpgradesPanel';
 import { ProbabilityTable } from './ProbabilityTable';
 import { IntroLetterScreen } from './IntroLetterScreen';
 import { FlavorBanner } from './FlavorBanner';
+import { ResultToast } from './ResultToast';
 import { gameReducer, createInitialState } from '../game/gameReducer';
 import { Bet, BetKind, getBetDescription } from '../game/bets';
 import { rollWinningNumber } from '../game/roll';
@@ -24,6 +25,8 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onGameOver }) => {
   const [state, dispatch] = useReducer(gameReducer, createInitialState());
   const [betAmount, setBetAmount] = useState(5);
   const [activeTab, setActiveTab] = useState<'outside' | 'inside'>('outside');
+  const [toastOpen, setToastOpen] = useState(false);
+  const [toastNumber, setToastNumber] = useState<number | null>(null);
 
   const handleAddBet = (kind: BetKind, numbers?: number[], meta?: Bet['meta']) => {
     const bet: Bet = {
@@ -71,6 +74,8 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onGameOver }) => {
   };
 
   const handleSpinComplete = (winningNumber: number) => {
+    setToastNumber(winningNumber);
+    setToastOpen(true);
     dispatch({ type: 'SPIN_FINISHED', winningNumber });
     setTimeout(() => {
       dispatch({ type: 'RESOLVE_SPIN' });
@@ -133,8 +138,8 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onGameOver }) => {
             <RouletteCardFlip
               frontContent={
                 <RouletteCanvas
-                  widthBase={400}
-                  heightBase={400}
+                  widthBase={480}
+                  heightBase={480}
                   winningNumber={state.pendingWinningNumber}
                   phase={isSpinning ? 'spinning' : 'idle'}
                   onSpinComplete={handleSpinComplete}
@@ -447,6 +452,12 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onGameOver }) => {
           onClose={handleCloseShop}
         />
       )}
+
+      <ResultToast
+        open={toastOpen}
+        winningNumber={toastNumber}
+        onClose={() => setToastOpen(false)}
+      />
     </div>
   );
 };

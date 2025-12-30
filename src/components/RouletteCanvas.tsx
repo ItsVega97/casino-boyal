@@ -15,14 +15,14 @@ interface RouletteCanvasProps {
   widthBase?: number;
   heightBase?: number;
   winningNumber: number | null;
-  phase: 'idle' | 'spinning' | 'settling' | 'landed';
+  phase: 'idle' | 'spinning' | 'settling' | 'rattling' | 'landed';
   onSpinComplete: (winningNumber: number) => void;
   triggerSpinToken: number;
 }
 
 export const RouletteCanvas: React.FC<RouletteCanvasProps> = ({
-  widthBase = 320,
-  heightBase = 320,
+  widthBase = 480,
+  heightBase = 480,
   winningNumber,
   onSpinComplete,
   triggerSpinToken,
@@ -34,12 +34,14 @@ export const RouletteCanvas: React.FC<RouletteCanvasProps> = ({
 
   const wheelAngleRef = useRef(0);
   const ballAngleRef = useRef(BALL_DROP_ANGLE);
+  const ballRadiusRef = useRef(0);
   const wheelVelRef = useRef(0);
   const ballVelRef = useRef(0);
   const animationStartRef = useRef(0);
   const targetWheelAngleRef = useRef(0);
   const completedRef = useRef(false);
   const winningNumberRef = useRef<number | null>(null);
+  const rattleStartRef = useRef(0);
 
   const fitCanvas = () => {
     const canvas = canvasRef.current;
@@ -93,7 +95,7 @@ export const RouletteCanvas: React.FC<RouletteCanvasProps> = ({
   const drawRoulette = (ctx: CanvasRenderingContext2D) => {
     const centerX = widthBase / 2;
     const centerY = heightBase / 2;
-    const wheelRadius = 120;
+    const wheelRadius = 180;
 
     ctx.fillStyle = '#0a0a1a';
     ctx.fillRect(0, 0, widthBase, heightBase);
@@ -129,7 +131,7 @@ export const RouletteCanvas: React.FC<RouletteCanvasProps> = ({
       ctx.translate(textX, textY);
       ctx.rotate(textAngle + Math.PI / 2);
       ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 8px monospace';
+      ctx.font = 'bold 12px monospace';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(number.toString(), 0, 0);
@@ -138,13 +140,15 @@ export const RouletteCanvas: React.FC<RouletteCanvasProps> = ({
 
     ctx.restore();
 
-    const ballRadius = wheelRadius + 15;
-    const ballX = centerX + Math.cos(ballAngleRef.current) * ballRadius;
-    const ballY = centerY + Math.sin(ballAngleRef.current) * ballRadius;
+    const baseBallRadius = wheelRadius + 15;
+    const ballRadiusOffset = ballRadiusRef.current || 0;
+    const effectiveBallRadius = baseBallRadius + ballRadiusOffset;
+    const ballX = centerX + Math.cos(ballAngleRef.current) * effectiveBallRadius;
+    const ballY = centerY + Math.sin(ballAngleRef.current) * effectiveBallRadius;
 
     ctx.fillStyle = '#ffffff';
     ctx.beginPath();
-    ctx.arc(ballX, ballY, 6, 0, Math.PI * 2);
+    ctx.arc(ballX, ballY, 8, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.strokeStyle = '#cccccc';
@@ -159,7 +163,7 @@ export const RouletteCanvas: React.FC<RouletteCanvasProps> = ({
 
     ctx.fillStyle = '#ffff00';
     ctx.beginPath();
-    ctx.arc(centerX + Math.cos(BALL_DROP_ANGLE) * (wheelRadius + 25), centerY + Math.sin(BALL_DROP_ANGLE) * (wheelRadius + 25), 3, 0, Math.PI * 2);
+    ctx.arc(centerX + Math.cos(BALL_DROP_ANGLE) * (wheelRadius + 25), centerY + Math.sin(BALL_DROP_ANGLE) * (wheelRadius + 25), 4, 0, Math.PI * 2);
     ctx.fill();
   };
 
@@ -179,6 +183,7 @@ export const RouletteCanvas: React.FC<RouletteCanvasProps> = ({
     setIsAnimating(true);
     completedRef.current = false;
     winningNumberRef.current = targetNumber;
+    rattleStartRef.current = 0;
 
     const targetIndex = EURO_WHEEL_ORDER.indexOf(targetNumber);
     const pocketCenterAngle = ANGLE_ZERO_AT + targetIndex * POCKET_SIZE + POCKET_SIZE / 2;
@@ -191,6 +196,7 @@ export const RouletteCanvas: React.FC<RouletteCanvasProps> = ({
     wheelVelRef.current = 0.4 + Math.random() * 0.2;
     ballVelRef.current = -0.3 - Math.random() * 0.15;
     ballAngleRef.current = BALL_DROP_ANGLE + Math.random() * Math.PI * 2;
+    ballRadiusRef.current = 0;
 
     animationStartRef.current = Date.now();
     animate();
@@ -208,15 +214,23 @@ export const RouletteCanvas: React.FC<RouletteCanvasProps> = ({
     if (!ctx) return;
 
     const elapsed = Date.now() - animationStartRef.current;
-    const duration = 3500;
-    const progress = Math.min(elapsed / duration, 1);
+    const spinDuration = 3000;
+    const rattleDuration = 1000;
+    const totalDuration = spinDuration + rattleDuration;
+    const progress = Math.min(elapsed / totalDuration, 1);
 
-    if (progress < 0.6) {
+    if (progress < 0.7) {
       wheelAngleRef.current += wheelVelRef.current * 0.06;
       ballAngleRef.current += ballVelRef.current * 0.06;
-    } else if (progress < 1) {
-      const settleProgress = (progress - 0.6) / 0.4;
-      const eased = easeOutCubic(settleProgress);
+      ballRadiusRef.current = 0;
+    } else if (progress < 0.95) {
+      if (rattleStartRef.current === 0) {
+        rattleStartRef.current = Date.now();
+      }
+
+      const rattleElapsed = Date.now() - rattleStartRef.current;
+      const rattleProgress = Math.min(rattleElapsed / rattleDuration, 1);
+      const eased = easeOutCubic(rattleProgress);
 
       const startWheelAngle = wheelAngleRef.current;
       const targetWheel = targetWheelAngleRef.current;
@@ -224,14 +238,25 @@ export const RouletteCanvas: React.FC<RouletteCanvasProps> = ({
       wheelAngleRef.current = startWheelAngle * (1 - eased) + targetWheel * eased;
 
       wheelVelRef.current *= 0.92;
-      ballVelRef.current *= 0.90;
+      ballVelRef.current *= 0.88;
 
-      const ballProgress = Math.min(settleProgress * 1.5, 1);
-      ballAngleRef.current =
-        ballAngleRef.current * (1 - ballProgress) + BALL_DROP_ANGLE * ballProgress;
+      const freq = 15 + rattleProgress * 5;
+      const jitterAmp = (1 - rattleProgress) * 0.15;
+      const jitter = Math.sin(rattleElapsed * freq * 0.01) * jitterAmp;
+
+      const snapBase = Math.round(BALL_DROP_ANGLE / POCKET_SIZE) * POCKET_SIZE;
+      const snapOffset = Math.floor(Math.sin(rattleElapsed * 0.012) * 2) * POCKET_SIZE;
+      const targetBallAngle = snapBase + snapOffset + jitter;
+
+      ballAngleRef.current = ballAngleRef.current * (1 - rattleProgress * 0.5) + targetBallAngle * (rattleProgress * 0.5);
+
+      const radiusFreq = 20;
+      const radiusAmp = (1 - rattleProgress) * 8;
+      ballRadiusRef.current = Math.sin(rattleElapsed * radiusFreq * 0.01) * radiusAmp;
     } else {
       wheelAngleRef.current = targetWheelAngleRef.current;
       ballAngleRef.current = BALL_DROP_ANGLE;
+      ballRadiusRef.current = 0;
     }
 
     drawRoulette(ctx);
