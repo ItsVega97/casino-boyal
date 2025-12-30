@@ -99,6 +99,19 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onGameOver }) => {
   };
 
   const handleGameOverClick = () => {
+    const defeatedReason = state.spinsLeft <= 0 ? 'outOfSpins' : 'outOfChips';
+    const { saveRunRecord } = require('../game/runHistory');
+    saveRunRecord({
+      rouletteVariantId: state.selectedVariantId,
+      roundsCompleted: state.run.roundsCleared,
+      maxChips: state.chips,
+      ticketsEarned: state.tickets,
+      defeatedReason,
+    });
+
+    const { unlockAchievement } = require('../achievements/system');
+    unlockAchievement('first_death');
+
     onGameOver(state.round, state.highScore);
   };
 

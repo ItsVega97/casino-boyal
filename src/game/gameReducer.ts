@@ -37,7 +37,7 @@ export interface GameState {
     roundsCleared: number;
   };
   ui: {
-    screen: 'intro' | 'menu' | 'game' | 'shop' | 'gameOver';
+    screen: 'intro' | 'menu' | 'game' | 'shop' | 'gameOver' | 'history' | 'wiki' | 'achievements';
   };
   streak: {
     winsInRow: number;
@@ -66,7 +66,11 @@ export type GameAction =
   | { type: 'GO_TO_INTRO' }
   | { type: 'GO_TO_MENU' }
   | { type: 'SELECT_VARIANT'; variantId: RouletteVariantId }
-  | { type: 'START_NEW_RUN_FROM_INTRO' };
+  | { type: 'START_NEW_RUN_FROM_INTRO' }
+  | { type: 'OPEN_HISTORY' }
+  | { type: 'OPEN_WIKI' }
+  | { type: 'OPEN_ACHIEVEMENTS' }
+  | { type: 'BACK_TO_MAIN_MENU' };
 
 export const createInitialState = (): GameState => {
   const savedHighScore = localStorage.getItem('casinoBoyal_highScore');
@@ -200,6 +204,11 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
         }
       }
 
+      const { unlockAchievement } = require('../achievements/system');
+      if (newStreak.winsInRow >= 5) unlockAchievement('five_streak');
+      if (newChips >= 500) unlockAchievement('rich_man');
+      if (newChips >= 1000) unlockAchievement('millionaire');
+
       newUpgradeState.vision_excluded = undefined;
 
       let newBets = [];
@@ -293,6 +302,12 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
         return state;
       }
 
+      const { addUpgradeToHistory } = require('../upgrades/history');
+      addUpgradeToHistory(action.upgradeId);
+
+      const { unlockAchievement } = require('../achievements/system');
+      unlockAchievement('first_upgrade');
+
       return {
         ...state,
         tickets: state.tickets - action.cost,
@@ -317,6 +332,13 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
       if (newBestRunRoundsCleared > state.meta.bestRunRoundsCleared) {
         localStorage.setItem('casinoBoyal_bestRunRoundsCleared', newBestRunRoundsCleared.toString());
       }
+
+      const { unlockAchievement } = require('../achievements/system');
+      if (newRoundsCleared >= 1) unlockAchievement('first_win');
+      if (newRoundsCleared >= 5) unlockAchievement('five_rounds');
+      if (newRoundsCleared >= 10) unlockAchievement('ten_rounds');
+      if (newRoundsCleared >= 20) unlockAchievement('twenty_rounds');
+      if (newRoundsCleared >= 30) unlockAchievement('thirty_rounds');
 
       const extraSpins = getTotalExtraSpins(state.ownedUpgrades);
       const roundBonus = getRoundStartBonus(state.ownedUpgrades);
@@ -418,6 +440,10 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
     case 'SELECT_VARIANT': {
       const variant = getRouletteVariant(action.variantId);
 
+      const { unlockAchievement } = require('../achievements/system');
+      if (action.variantId === 'jade') unlockAchievement('use_jade');
+      if (action.variantId === 'shadow') unlockAchievement('use_shadow');
+
       return {
         ...state,
         selectedVariantId: action.variantId,
@@ -457,6 +483,42 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
         ...state,
         ui: {
           screen: 'menu',
+        },
+      };
+    }
+
+    case 'OPEN_HISTORY': {
+      return {
+        ...state,
+        ui: {
+          screen: 'history',
+        },
+      };
+    }
+
+    case 'OPEN_WIKI': {
+      return {
+        ...state,
+        ui: {
+          screen: 'wiki',
+        },
+      };
+    }
+
+    case 'OPEN_ACHIEVEMENTS': {
+      return {
+        ...state,
+        ui: {
+          screen: 'achievements',
+        },
+      };
+    }
+
+    case 'BACK_TO_MAIN_MENU': {
+      return {
+        ...state,
+        ui: {
+          screen: 'intro',
         },
       };
     }

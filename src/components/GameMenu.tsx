@@ -3,9 +3,12 @@ import React from 'react';
 interface GameMenuProps {
   highScore: number;
   onStart: () => void;
+  onOpenHistory: () => void;
+  onOpenWiki: () => void;
+  onOpenAchievements: () => void;
 }
 
-export const GameMenu: React.FC<GameMenuProps> = ({ highScore, onStart }) => {
+export const GameMenu: React.FC<GameMenuProps> = ({ highScore, onStart, onOpenHistory, onOpenWiki, onOpenAchievements }) => {
   return (
     <div className="min-h-dvh w-full bg-black flex items-center justify-center p-4 overflow-y-auto">
       <div className="max-w-2xl w-full py-8">
@@ -63,18 +66,27 @@ export const GameMenu: React.FC<GameMenuProps> = ({ highScore, onStart }) => {
         </button>
 
         <div className="mt-6 md:mt-8 grid grid-cols-3 gap-2 md:gap-4 text-center text-xs font-mono">
-          <div className="border-2 border-yellow-600 p-2 md:p-3 bg-gray-900">
-            <p className="font-bold mb-1 text-yellow-300">[ROUNDS]</p>
-            <p className="text-yellow-100 text-[10px] md:text-xs">Progressive</p>
-          </div>
-          <div className="border-2 border-yellow-600 p-2 md:p-3 bg-gray-900">
-            <p className="font-bold mb-1 text-yellow-300">[ITEMS]</p>
-            <p className="text-yellow-100 text-[10px] md:text-xs">Magic & Power</p>
-          </div>
-          <div className="border-2 border-yellow-600 p-2 md:p-3 bg-gray-900">
-            <p className="font-bold mb-1 text-yellow-300">[ROGUELIKE]</p>
-            <p className="text-yellow-100 text-[10px] md:text-xs">Every Run New</p>
-          </div>
+          <button
+            onClick={onOpenHistory}
+            className="border-2 border-yellow-600 p-2 md:p-3 bg-gray-900 hover:bg-gray-800 transition-all active:scale-95 cursor-pointer"
+          >
+            <p className="font-bold mb-1 text-yellow-300">[HISTORIAL]</p>
+            <p className="text-yellow-100 text-[10px] md:text-xs">Partidas</p>
+          </button>
+          <button
+            onClick={onOpenWiki}
+            className="border-2 border-yellow-600 p-2 md:p-3 bg-gray-900 hover:bg-gray-800 transition-all active:scale-95 cursor-pointer"
+          >
+            <p className="font-bold mb-1 text-yellow-300">[WIKI]</p>
+            <p className="text-yellow-100 text-[10px] md:text-xs">Mejoras</p>
+          </button>
+          <button
+            onClick={onOpenAchievements}
+            className="border-2 border-yellow-600 p-2 md:p-3 bg-gray-900 hover:bg-gray-800 transition-all active:scale-95 cursor-pointer"
+          >
+            <p className="font-bold mb-1 text-yellow-300">[LOGROS]</p>
+            <p className="text-yellow-100 text-[10px] md:text-xs">Desafíos</p>
+          </button>
         </div>
       </div>
     </div>
