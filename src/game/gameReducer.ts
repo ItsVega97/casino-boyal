@@ -66,6 +66,7 @@ export type GameAction =
   | { type: 'GO_TO_INTRO' }
   | { type: 'GO_TO_MENU' }
   | { type: 'SELECT_VARIANT'; variantId: RouletteVariantId }
+  | { type: 'START_NEW_RUN_WITH_VARIANT'; variantId: RouletteVariantId }
   | { type: 'START_NEW_RUN_FROM_INTRO' }
   | { type: 'OPEN_HISTORY' }
   | { type: 'OPEN_WIKI' }
@@ -434,6 +435,48 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
         ui: {
           screen: 'menu',
         },
+      };
+    }
+
+    case 'START_NEW_RUN_WITH_VARIANT': {
+      const variant = getRouletteVariant(action.variantId);
+      const spinsPerRoundDelta = variant.modifiers.spinsPerRoundDelta || 0;
+
+      const { unlockAchievement } = require('../achievements/system');
+      if (action.variantId === 'jade') unlockAchievement('use_jade');
+      if (action.variantId === 'shadow') unlockAchievement('use_shadow');
+
+      return {
+        ...state,
+        selectedVariantId: action.variantId,
+        round: 1,
+        spinsLeft: getRoundSpinsBase(1, spinsPerRoundDelta),
+        chips: 20,
+        targetChips: getRoundTarget(1),
+        tickets: 0,
+        bets: [],
+        lockedBets: null,
+        lastResult: null,
+        phase: 'betting',
+        triggerSpinToken: 0,
+        pendingWinningNumber: null,
+        ownedUpgrades: [],
+        shopOffers: [],
+        run: {
+          roundsCleared: 0,
+        },
+        ui: {
+          screen: 'game',
+        },
+        streak: {
+          winsInRow: 0,
+          lossesInRow: 0,
+        },
+        upgradeState: {
+          rigged_counter_losses: 0,
+          first_loss_used: false,
+        },
+        repeatNextSpinFree: false,
       };
     }
 

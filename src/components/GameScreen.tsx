@@ -136,8 +136,59 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onGameOver }) => {
     return (
       <RouletteMenuScreen
         bestRunRoundsCleared={state.meta.bestRunRoundsCleared}
-        onSelectVariant={(variantId) => dispatch({ type: 'SELECT_VARIANT', variantId })}
+        onSelectVariant={(variantId) => dispatch({ type: 'START_NEW_RUN_WITH_VARIANT', variantId })}
       />
+    );
+  }
+
+  if (state.ui.screen === 'history' || state.ui.screen === 'wiki' || state.ui.screen === 'achievements') {
+    return (
+      <div className="min-h-dvh w-full bg-black flex items-center justify-center p-4">
+        <div className="text-center">
+          <p className="text-yellow-400 text-xl mb-4">Screen: {state.ui.screen}</p>
+          <p className="text-gray-400 mb-4">Esta pantalla no está implementada en este contexto</p>
+          <button
+            onClick={() => dispatch({ type: 'GO_TO_MENU' })}
+            className="px-6 py-3 bg-yellow-600 hover:bg-yellow-700 text-white font-bold rounded"
+          >
+            Volver al Menú
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (state.ui.screen === 'gameOver') {
+    return (
+      <div className="min-h-dvh w-full bg-black flex items-center justify-center p-4">
+        <div className="text-center">
+          <p className="text-red-400 text-xl mb-4">GAME OVER</p>
+          <button
+            onClick={handleGameOverClick}
+            className="px-6 py-3 bg-yellow-600 hover:bg-yellow-700 text-white font-bold rounded"
+          >
+            Volver al Menú Principal
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (state.ui.screen !== 'game' && state.ui.screen !== 'shop') {
+    return (
+      <div className="min-h-dvh w-full bg-black flex items-center justify-center p-4">
+        <div className="text-center">
+          <p className="text-red-400 text-xl mb-4">ERROR: Screen desconocida</p>
+          <p className="text-gray-400 mb-2">state.ui.screen = {state.ui.screen}</p>
+          <p className="text-gray-400 mb-4">Este es un estado inválido</p>
+          <button
+            onClick={() => dispatch({ type: 'GO_TO_MENU' })}
+            className="px-6 py-3 bg-yellow-600 hover:bg-yellow-700 text-white font-bold rounded"
+          >
+            Volver al Menú
+          </button>
+        </div>
+      </div>
     );
   }
 
@@ -471,6 +522,19 @@ export const GameScreen: React.FC<GameScreenProps> = ({ onGameOver }) => {
         winningNumber={toastNumber}
         onClose={() => setToastOpen(false)}
       />
+
+      {import.meta.env.DEV && (
+        <div className="fixed bottom-2 left-2 bg-black/90 border border-yellow-500 p-2 text-xs font-mono text-yellow-400 rounded z-50 max-w-xs">
+          <div className="font-bold mb-1 text-green-400">DEBUG INFO:</div>
+          <div>screen: {state.ui.screen}</div>
+          <div>phase: {state.phase}</div>
+          <div>round: {state.round}</div>
+          <div>chips: {state.chips}</div>
+          <div>target: {state.targetChips}</div>
+          <div>spins: {state.spinsLeft}</div>
+          <div>variant: {state.selectedVariantId}</div>
+        </div>
+      )}
     </div>
   );
 };
