@@ -1,0 +1,82 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  height: 100%;
+  min-height: 100dvh;
+}
+
+:root {
+  font-family: 'Press Start 2P', cursive;
+  background: linear-gradient(135deg, #0a0a1a 0%, #1a0a2e 100%);
+}
+
+body {
+  margin: 0;
+  background: #000;
+  color: #fff;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+  min-height: 100dvh;
+  width: 100%;
+}
+
+#root {
+  width: 100%;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  position: relative;
+}
+
+* {
+  -webkit-font-smoothing: pixelated;
+}
+
+button {
+  font-family: 'Press Start 2P', cursive;
+  letter-spacing: 0.05em;
+}
+
+canvas {
+  display: block;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  image-rendering: -moz-crisp-edges;
+  -ms-interpolation-mode: nearest-neighbor;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    text-shadow: 0 0 5px rgba(255, 255, 0, 0.5);
+  }
+  50% {
+    text-shadow: 0 0 20px rgba(255, 255, 0, 1);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.glow-text {
+  animation: pulse-glow 2s infinite;
+}
+
+.float-animation {
+  animation: float 3s ease-in-out infinite;
+}
